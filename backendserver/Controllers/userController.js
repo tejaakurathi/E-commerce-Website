@@ -39,7 +39,7 @@ router.get('/user', async (req, res) => {
     }
 });
 
-router.get('/user', async (req, res) => {
+router.post('/user', async (req, res) => {
     try {
         const { name, email, password, address } = req.body;
         console.log('Received data:', req.body);

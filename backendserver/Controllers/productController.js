@@ -1,11 +1,14 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const path = require('path');
 const connectDB = require('../dbConnect'); // Adjust the path as necessary
-// Ensure you have the correct path to your dbConnect.js file
 
 const router = express.Router();
 
+// Serve static images from the 'public/images' folder (adjust path as needed)
+
+// Get all products
 router.get('/products', async (req, res) => {
     try {
         const db = await connectDB();
@@ -16,26 +19,56 @@ router.get('/products', async (req, res) => {
     }
 });
 
-router.get('/product/:id', async (req, res) => {
+// Get a specific product by product ID
+router.get('/product/:productId', async (req, res) => {
     try {
-        const { id } = req.params; 
-       // return res.json(id);
-        if (!id) {
+        const { productId } = req.params;
+
+        if (!productId) {
             return res.status(400).json({ error: 'ID is required' });
         }
 
         const db = await connectDB();
-        const result = await db.query('SELECT * FROM product WHERE productID = ?', [id]);  // ✅ Parameterized Query
+        const result = await db.query('SELECT * FROM product WHERE productID = ?', [productId]);
 
-        if (result.length === 0) {
-            return res.status(404).json({ error: 'Product not found' });
-        }
+        const products = result.map(product =>({
+            ...product,
+            product_image:`${product.product_image}`
+        }));
 
         res.json(result[0]);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
+
+// Get all products in a specific category
+router.get('/products/:categoryId', async (req, res) => {
+    try {
+        const { categoryId } = req.params;
+
+        const db = await connectDB();
+        const result = await db.query('SELECT * FROM product WHERE categoryID = ?', [categoryId]);
+
+        if (result.length === 0) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// router.get('/products', async (req, res) => {
+//     try {
+//         const db = await connectDB();
+//         const result = await db.query('SELECT * FROM product');
+//         res.json(result);
+//     } catch (error) {
+//         res.status(500).json({ error: error.message });
+//     }
+// });
 
 router.post('/product', async (req, res) => {
     try {
